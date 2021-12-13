@@ -62,6 +62,19 @@ fun getHitLine(point: Point, direction: String): List<Point> {
     }
 }
 
+fun canHitFromPoint(point: Point, direction: String, arena: Arena): Boolean {
+    val hitPoints = getHitLine(point, direction).toSet()
+
+    for (name in arena.state.keys) {
+        val pState = arena.state[name]!!
+        if (hitPoints.contains(Point(pState.x, pState.y))) {
+            return true
+        }
+    }
+
+    return false
+}
+
 fun canHit(myLink: String, arena: Arena): Boolean {
     val myState = arena.state[myLink]!!
     val hitPoints = getHitLine(Point(myState.x, myState.y), myState.direction).toSet()
@@ -128,6 +141,22 @@ fun getMoveAction(arena: Arena): String {
     return listOf("R", "L", "F", "F", "F").random()
 }
 
+fun getTurn(myDirection: String, targetDirection: String): String {
+    val valueMap = mapOf(
+        "N" to 1,
+        "E" to 2,
+        "S" to 3,
+        "W" to 4
+    )
+
+    if (valueMap[myDirection]!! > valueMap[targetDirection]!!) {
+        return "L"
+    }
+    else {
+        return "R"
+    }
+}
+
 @Controller
 class WebApp {
 
@@ -139,18 +168,32 @@ class WebApp {
     @Post(uris = ["/", "/{+path}"])
     fun index(@Body maybeArenaUpdate: Single<ArenaUpdate>): Single<String> {
         return maybeArenaUpdate.map { arenaUpdate ->
+            val arena = arenaUpdate.arena
             val myLink = arenaUpdate._links.self.href
             val myState = arenaUpdate.arena.state[myLink]!!
             val myPoint = Point(myState.x, myState.y)
+            val myDirection = myState.direction
 
             val hasPlayerByPoint = populateMap(arenaUpdate.arena)
+            val directions = setOf("N", "S", "W", "E")
 
-
-            if (canHit(myLink, arenaUpdate.arena) && !myState.wasHit) {
+            if (canHit(myLink, arena) && !myState.wasHit) {
                 "T"
             }
             else {
-                getMoveAction(arenaUpdate.arena)
+                var futureDir = ""
+                for (dd in directions.filter { it != myDirection }) {
+                    if (canHitFromPoint(myPoint, dd, arena)) {
+                        futureDir = dd
+                    }
+                }
+
+                if (futureDir == "") {
+                    "F"
+                }
+                else {
+                    getTurn(myDirection, futureDir)
+                }
             }
         }
     }
