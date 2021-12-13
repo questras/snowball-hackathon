@@ -125,7 +125,7 @@ fun populateMap(arena: Arena): MutableMap<Point, Boolean> {
 }
 
 fun getMoveAction(arena: Arena): String {
-    return listOf("R", "L", "F").random()
+    return listOf("R", "L", "F", "F", "F").random()
 }
 
 @Controller
