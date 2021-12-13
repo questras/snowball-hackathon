@@ -177,7 +177,10 @@ class WebApp {
             val hasPlayerByPoint = populateMap(arenaUpdate.arena)
             val directions = setOf("N", "S", "W", "E")
 
-            if (canHit(myLink, arena) && !myState.wasHit) {
+            if (myState.wasHit) {
+                listOf("F", "R").random()
+            }
+            else if (canHit(myLink, arena)) {
                 "T"
             }
             else {
